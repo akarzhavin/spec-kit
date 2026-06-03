@@ -302,8 +302,29 @@ generate_branch_name() {
     fi
 }
 
+# Idempotency: if already on a feature branch (e.g. inside an EnterWorktree
+# worktree that already owns the branch), adopt it — don't create a 2nd branch
+# or bump the number. Skipped for --dry-run and explicit GIT_BRANCH_NAME.
+ALREADY_ON_FEATURE=false
+if [ "$DRY_RUN" != true ] && [ -z "${GIT_BRANCH_NAME:-}" ] && [ "$HAS_GIT" = true ]; then
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+    if echo "$CURRENT_BRANCH" | grep -Eq '^[0-9]{3,}-'; then
+        ALREADY_ON_FEATURE=true
+        BRANCH_NAME="$CURRENT_BRANCH"
+        if echo "$BRANCH_NAME" | grep -Eq '^[0-9]{8}-[0-9]{6}-'; then
+            FEATURE_NUM=$(echo "$BRANCH_NAME" | grep -Eo '^[0-9]{8}-[0-9]{6}')
+        else
+            FEATURE_NUM=$(echo "$BRANCH_NAME" | grep -Eo '^[0-9]+')
+        fi
+        BRANCH_SUFFIX="${BRANCH_NAME#${FEATURE_NUM}-}"
+        >&2 echo "[specify] Already on feature branch '$BRANCH_NAME'; adopting it (no new branch, no number bump)."
+    fi
+fi
+
 # Check for GIT_BRANCH_NAME env var override (exact branch name, no prefix/suffix)
-if [ -n "${GIT_BRANCH_NAME:-}" ]; then
+if [ "$ALREADY_ON_FEATURE" = true ]; then
+    : # BRANCH_NAME / FEATURE_NUM / BRANCH_SUFFIX already resolved above
+elif [ -n "${GIT_BRANCH_NAME:-}" ]; then
     BRANCH_NAME="$GIT_BRANCH_NAME"
     # Extract FEATURE_NUM from the branch name if it starts with a numeric prefix
     # Check timestamp pattern first (YYYYMMDD-HHMMSS-) since it also matches the simpler ^[0-9]+ pattern
@@ -378,7 +399,9 @@ elif [ "$BRANCH_BYTE_LEN" -gt $MAX_BRANCH_LENGTH ]; then
 fi
 
 if [ "$DRY_RUN" != true ]; then
-    if [ "$HAS_GIT" = true ]; then
+    if [ "$ALREADY_ON_FEATURE" = true ]; then
+        : # adopting the current feature branch — nothing to create
+    elif [ "$HAS_GIT" = true ]; then
         branch_create_error=""
         if ! branch_create_error=$(git checkout -q -b "$BRANCH_NAME" 2>&1); then
             current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
