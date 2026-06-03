@@ -18,6 +18,19 @@ After installing Spec Kit and defining your project constitution, quick experime
 
 Use `/speckit.clarify` to reduce requirement ambiguity before planning, `/speckit.checklist` to validate requirements quality before planning, and `/speckit.analyze` to check spec/plan/task consistency before implementation starts. You can repeat `/speckit.analyze` after implementation as an extra review, but keep the first analysis before `/speckit.implement` so gaps are caught while the plan and tasks can still be adjusted.
 
+### Iterating in phases (optional)
+
+After the base implementation, you can keep iterating on the **same feature** in dedicated phases instead of one monolithic plan. Each phase runs its own `plan → tasks → analyze → implement` loop and writes to its own `plan-<phase>.md` / `tasks-<phase>.md`, sharing the base spec and design artifacts:
+
+```text
+/speckit.plan-review    -> /speckit.tasks -> /speckit.analyze -> /speckit.implement   # code review / hardening
+/speckit.plan-localtest -> /speckit.tasks -> /speckit.analyze -> /speckit.implement   # run locally + fix
+/speckit.plan-release   -> /speckit.tasks -> /speckit.analyze -> /speckit.implement   # version, changelog, CI
+/speckit.plan-final     -> /speckit.tasks -> /speckit.analyze -> /speckit.implement   # acceptance / sign-off
+```
+
+`/speckit.tasks`, `/speckit.analyze`, and `/speckit.implement` are unchanged — they automatically target the active phase. Phases are optional and order-independent; run only what you need. Re-running `/speckit.plan` resets back to the base `plan.md` / `tasks.md`.
+
 ### Step 1: Install Specify
 
 **In your terminal**, run the `specify` CLI command to initialize your project:

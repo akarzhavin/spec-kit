@@ -2,6 +2,10 @@
 
 <!-- insert new changelog below this comment -->
 
+### Added
+
+- feat(commands): multi-phase workflow — add `/speckit.plan-review`, `/speckit.plan-localtest`, `/speckit.plan-release`, and `/speckit.plan-final` commands that iterate on the same feature in dedicated phases. Each phase runs its own `plan → tasks → analyze → implement` loop and writes to its own `plan-<phase>.md` / `tasks-<phase>.md`, sharing the base spec and design artifacts. `tasks` / `analyze` / `implement` are phase-aware via an active-phase marker (`<feature>/.current-phase`); re-running the base `/speckit.plan` resets to the base phase. Phases are optional and order-independent.
+
 ## [0.9.2] - 2026-06-02
 
 ### Changed
