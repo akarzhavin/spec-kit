@@ -4,28 +4,51 @@ set -e
 
 # Parse command line arguments
 JSON_MODE=false
+PHASE="base"
 ARGS=()
 
 for arg in "$@"; do
     case "$arg" in
-        --json) 
-            JSON_MODE=true 
+        --json)
+            JSON_MODE=true
             ;;
-        --help|-h) 
-            echo "Usage: $0 [--json]"
-            echo "  --json    Output results in JSON format"
-            echo "  --help    Show this help message"
-            exit 0 
+        --phase=*)
+            PHASE="${arg#*=}"
             ;;
-        *) 
-            ARGS+=("$arg") 
+        --phase)
+            # Value follows in the next iteration; capture via sentinel
+            PHASE="__SPECKIT_PHASE_PENDING__"
+            ;;
+        --help|-h)
+            echo "Usage: $0 [--json] [--phase <name>]"
+            echo "  --json           Output results in JSON format"
+            echo "  --phase <name>   Workflow phase (base|review|localtest|release|final|...)"
+            echo "  --help           Show this help message"
+            exit 0
+            ;;
+        *)
+            if [[ "$PHASE" == "__SPECKIT_PHASE_PENDING__" ]]; then
+                PHASE="$arg"
+            else
+                ARGS+=("$arg")
+            fi
             ;;
     esac
 done
 
+# Guard against a trailing "--phase" with no value
+if [[ "$PHASE" == "__SPECKIT_PHASE_PENDING__" ]]; then
+    echo "ERROR: --phase requires a value" >&2
+    exit 1
+fi
+
 # Get script directory and load common functions
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
+
+# Make the requested phase visible to get_feature_paths so IMPL_PLAN/TASKS
+# resolve to the phase-suffixed filenames (plan-<phase>.md / tasks-<phase>.md).
+export SPECIFY_PHASE="$PHASE"
 
 # Get all paths and variables from common functions
 _paths_output=$(get_feature_paths) || { echo "ERROR: Failed to resolve feature paths" >&2; exit 1; }
@@ -39,6 +62,15 @@ fi
 
 # Ensure the feature directory exists
 mkdir -p "$FEATURE_DIR"
+
+# Persist the active phase so subsequent phase-agnostic commands
+# (tasks/analyze/implement) operate on this phase's plan/tasks files.
+# The base phase clears the marker, restoring the default flow.
+if [[ -z "$PHASE" || "$PHASE" == "base" ]]; then
+    rm -f "$FEATURE_DIR/.current-phase"
+else
+    printf '%s\n' "$PHASE" > "$FEATURE_DIR/.current-phase"
+fi
 
 # Copy plan template if plan doesn't already exist
 if [[ -f "$IMPL_PLAN" ]]; then

@@ -251,6 +251,24 @@ find_feature_dir_by_prefix() {
     fi
 }
 
+# Resolve the current workflow phase for a feature.
+# Priority: SPECIFY_PHASE env var (explicit override) -> <feature_dir>/.current-phase file.
+# Returns empty (treated as the base phase) when neither is set.
+read_current_phase() {
+    local feature_dir="$1"
+    if [[ -n "${SPECIFY_PHASE:-}" ]]; then
+        printf '%s' "$SPECIFY_PHASE"
+        return
+    fi
+    local phase_file="$feature_dir/.current-phase"
+    if [[ -f "$phase_file" ]]; then
+        # Trim surrounding whitespace/newlines
+        local phase
+        phase=$(tr -d '[:space:]' < "$phase_file")
+        printf '%s' "$phase"
+    fi
+}
+
 get_feature_paths() {
     local repo_root=$(get_repo_root)
     local current_branch=$(get_current_branch)
@@ -287,15 +305,28 @@ get_feature_paths() {
         return 1
     fi
 
+    # Resolve the active phase and derive phase-suffixed plan/tasks filenames.
+    # Empty or "base" phase keeps the historical plan.md / tasks.md names so the
+    # default (single-phase) flow is unchanged. Other phases get plan-<phase>.md /
+    # tasks-<phase>.md while the shared design artifacts below stay un-suffixed.
+    local phase
+    phase=$(read_current_phase "$feature_dir")
+    local plan_name="plan.md" tasks_name="tasks.md"
+    if [[ -n "$phase" && "$phase" != "base" ]]; then
+        plan_name="plan-$phase.md"
+        tasks_name="tasks-$phase.md"
+    fi
+
     # Use printf '%q' to safely quote values, preventing shell injection
     # via crafted branch names or paths containing special characters
     printf 'REPO_ROOT=%q\n' "$repo_root"
     printf 'CURRENT_BRANCH=%q\n' "$current_branch"
     printf 'HAS_GIT=%q\n' "$has_git_repo"
+    printf 'PHASE=%q\n' "$phase"
     printf 'FEATURE_DIR=%q\n' "$feature_dir"
     printf 'FEATURE_SPEC=%q\n' "$feature_dir/spec.md"
-    printf 'IMPL_PLAN=%q\n' "$feature_dir/plan.md"
-    printf 'TASKS=%q\n' "$feature_dir/tasks.md"
+    printf 'IMPL_PLAN=%q\n' "$feature_dir/$plan_name"
+    printf 'TASKS=%q\n' "$feature_dir/$tasks_name"
     printf 'RESEARCH=%q\n' "$feature_dir/research.md"
     printf 'DATA_MODEL=%q\n' "$feature_dir/data-model.md"
     printf 'QUICKSTART=%q\n' "$feature_dir/quickstart.md"

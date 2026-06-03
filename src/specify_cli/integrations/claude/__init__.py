@@ -15,6 +15,10 @@ from ..manifest import IntegrationManifest
 ARGUMENT_HINTS: dict[str, str] = {
     "specify": "Describe the feature you want to specify",
     "plan": "Optional guidance for the planning phase",
+    "plan-review": "Optional review findings to scope the review phase",
+    "plan-localtest": "Optional local run results or errors to address",
+    "plan-release": "Optional release constraints (version, changelog, CI)",
+    "plan-final": "Optional acceptance constraints for final testing",
     "tasks": "Optional task generation constraints",
     "implement": "Optional implementation guidance or task filter",
     "analyze": "Optional focus areas for analysis",

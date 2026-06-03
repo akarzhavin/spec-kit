@@ -9,8 +9,8 @@ handoffs:
     agent: speckit.checklist
     prompt: Create a checklist for the following domain...
 scripts:
-  sh: scripts/bash/setup-plan.sh --json
-  ps: scripts/powershell/setup-plan.ps1 -Json
+  sh: scripts/bash/setup-plan.sh --json --phase base
+  ps: scripts/powershell/setup-plan.ps1 -Json -Phase base
 ---
 
 ## User Input

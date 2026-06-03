@@ -4,6 +4,7 @@
 [CmdletBinding()]
 param(
     [switch]$Json,
+    [string]$Phase = 'base',
     [switch]$Help
 )
 
@@ -11,14 +12,19 @@ $ErrorActionPreference = 'Stop'
 
 # Show help if requested
 if ($Help) {
-    Write-Output "Usage: ./setup-plan.ps1 [-Json] [-Help]"
-    Write-Output "  -Json     Output results in JSON format"
-    Write-Output "  -Help     Show this help message"
+    Write-Output "Usage: ./setup-plan.ps1 [-Json] [-Phase <name>] [-Help]"
+    Write-Output "  -Json            Output results in JSON format"
+    Write-Output "  -Phase <name>    Workflow phase (base|review|localtest|release|final|...)"
+    Write-Output "  -Help            Show this help message"
     exit 0
 }
 
 # Load common functions
 . "$PSScriptRoot/common.ps1"
+
+# Make the requested phase visible to Get-FeaturePathsEnv so IMPL_PLAN/TASKS
+# resolve to the phase-suffixed filenames (plan-<phase>.md / tasks-<phase>.md).
+$env:SPECIFY_PHASE = $Phase
 
 # Get all paths and variables from common functions
 $paths = Get-FeaturePathsEnv
@@ -32,6 +38,17 @@ if (-not (Test-FeatureJsonMatchesFeatureDir -RepoRoot $paths.REPO_ROOT -ActiveFe
 
 # Ensure the feature directory exists
 New-Item -ItemType Directory -Path $paths.FEATURE_DIR -Force | Out-Null
+
+# Persist the active phase so subsequent phase-agnostic commands
+# (tasks/analyze/implement) operate on this phase's plan/tasks files.
+# The base phase clears the marker, restoring the default flow.
+$phaseFile = Join-Path $paths.FEATURE_DIR '.current-phase'
+if ([string]::IsNullOrEmpty($Phase) -or $Phase -eq 'base') {
+    if (Test-Path -LiteralPath $phaseFile) { Remove-Item -LiteralPath $phaseFile -Force }
+} else {
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($phaseFile, "$Phase`n", $utf8NoBom)
+}
 
 # Copy plan template if plan doesn't already exist
 if (Test-Path $paths.IMPL_PLAN -PathType Leaf) {

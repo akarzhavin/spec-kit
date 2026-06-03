@@ -27,7 +27,7 @@ if (-not (Test-FeatureJsonMatchesFeatureDir -RepoRoot $paths.REPO_ROOT -ActiveFe
 }
 
 if (-not (Test-Path $paths.IMPL_PLAN -PathType Leaf)) {
-    [Console]::Error.WriteLine("ERROR: plan.md not found in $($paths.FEATURE_DIR)")
+    [Console]::Error.WriteLine("ERROR: $([System.IO.Path]::GetFileName($paths.IMPL_PLAN)) not found in $($paths.FEATURE_DIR)")
     [Console]::Error.WriteLine("Run __SPECKIT_COMMAND_PLAN__ first to create the implementation plan.")
     exit 1
 }
@@ -62,9 +62,15 @@ if ($Json) {
         FEATURE_DIR    = $paths.FEATURE_DIR
         AVAILABLE_DOCS = $docs
         TASKS_TEMPLATE = $tasksTemplate
+        IMPL_PLAN      = $paths.IMPL_PLAN
+        TASKS          = $paths.TASKS
+        PHASE          = $paths.PHASE
     } | ConvertTo-Json -Compress
 } else {
     Write-Output "FEATURE_DIR: $($paths.FEATURE_DIR)"
+    Write-Output "IMPL_PLAN: $($paths.IMPL_PLAN)"
+    Write-Output "TASKS: $($paths.TASKS)"
+    Write-Output "PHASE: $(if ($paths.PHASE) { $paths.PHASE } else { 'base' })"
     Write-Output "TASKS_TEMPLATE: $(if ($tasksTemplate) { $tasksTemplate } else { 'not found' })"
     Write-Output "AVAILABLE_DOCS:"
     Test-FileExists -Path $paths.RESEARCH -Description 'research.md' | Out-Null

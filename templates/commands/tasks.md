@@ -58,16 +58,17 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. **Setup**: Run `{SCRIPT}` from repo root and parse FEATURE_DIR, TASKS_TEMPLATE, and AVAILABLE_DOCS list. `FEATURE_DIR` and `TASKS_TEMPLATE` must be absolute paths when provided. `AVAILABLE_DOCS` is a list of document names/relative paths available under `FEATURE_DIR` (for example `research.md` or `contracts/`). For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. **Setup**: Run `{SCRIPT}` from repo root and parse FEATURE_DIR, IMPL_PLAN, TASKS, PHASE, TASKS_TEMPLATE, and AVAILABLE_DOCS list. `FEATURE_DIR`, `IMPL_PLAN`, `TASKS`, and `TASKS_TEMPLATE` must be absolute paths when provided. `AVAILABLE_DOCS` is a list of document names/relative paths available under `FEATURE_DIR` (for example `research.md` or `contracts/`). `IMPL_PLAN` and `TASKS` are the **active plan and tasks files** — when a phase is active (PHASE other than `base`/empty) they are phase-suffixed (e.g. `plan-review.md` / `tasks-review.md`); otherwise they are `plan.md` / `tasks.md`. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Load design documents**: Read from FEATURE_DIR:
-   - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
+   - **Required**: the active plan at IMPL_PLAN (tech stack, libraries, structure, and — in a phase — the scoped work items), spec.md (user stories with priorities)
+   - **In a phase** (PHASE not `base`/empty): also read the base `plan.md` for overall feature context if IMPL_PLAN is a phase plan.
    - **Optional**: data-model.md (entities), contracts/ (interface contracts), research.md (decisions), quickstart.md (test scenarios)
    - **IF EXISTS**: Load `/memory/constitution.md` for project principles and governance constraints
    - Note: Not all projects have all documents. Generate tasks based on what's available.
 
 3. **Execute task generation workflow**:
-   - Load plan.md and extract tech stack, libraries, project structure
+   - Load the active plan (IMPL_PLAN) and extract tech stack, libraries, project structure, and (in a phase) the scoped work items
    - Load spec.md and extract user stories with their priorities (P1, P2, P3, etc.)
    - If data-model.md exists: Extract entities and map to user stories
    - If contracts/ exists: Map interface contracts to user stories
@@ -77,8 +78,8 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Create parallel execution examples per user story
    - Validate task completeness (each user story has all needed tasks, independently testable)
 
-4. **Generate tasks.md**: Read the tasks template from TASKS_TEMPLATE (from the JSON output above) and use it as structure. If TASKS_TEMPLATE is empty, fall back to `.specify/templates/tasks-template.md`. Fill with:
-   - Correct feature name from plan.md
+4. **Generate the tasks file at TASKS**: Write to the active TASKS path (e.g. `tasks.md` for the base phase, or `tasks-<phase>.md` in a phase). Read the tasks template from TASKS_TEMPLATE (from the JSON output above) and use it as structure. If TASKS_TEMPLATE is empty, fall back to `.specify/templates/tasks-template.md`. Fill with:
+   - Correct feature name from the active plan (IMPL_PLAN)
    - Phase 1: Setup tasks (project initialization)
    - Phase 2: Foundational tasks (blocking prerequisites for all user stories)
    - Phase 3+: One phase per user story (in priority order from spec.md)

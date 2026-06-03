@@ -94,14 +94,14 @@ if (-not (Test-Path $paths.FEATURE_DIR -PathType Container)) {
 }
 
 if (-not (Test-Path $paths.IMPL_PLAN -PathType Leaf)) {
-    Write-Output "ERROR: plan.md not found in $($paths.FEATURE_DIR)"
+    Write-Output "ERROR: $([System.IO.Path]::GetFileName($paths.IMPL_PLAN)) not found in $($paths.FEATURE_DIR)"
     Write-Output "Run __SPECKIT_COMMAND_PLAN__ first to create the implementation plan."
     exit 1
 }
 
-# Check for tasks.md if required
+# Check for the (possibly phase-suffixed) tasks file if required
 if ($RequireTasks -and -not (Test-Path $paths.TASKS -PathType Leaf)) {
-    Write-Output "ERROR: tasks.md not found in $($paths.FEATURE_DIR)"
+    Write-Output "ERROR: $([System.IO.Path]::GetFileName($paths.TASKS)) not found in $($paths.FEATURE_DIR)"
     Write-Output "Run __SPECKIT_COMMAND_TASKS__ first to create the task list."
     exit 1
 }
@@ -120,21 +120,27 @@ if ((Test-Path $paths.CONTRACTS_DIR) -and (Get-ChildItem -Path $paths.CONTRACTS_
 
 if (Test-Path $paths.QUICKSTART) { $docs += 'quickstart.md' }
 
-# Include tasks.md if requested and it exists
-if ($IncludeTasks -and (Test-Path $paths.TASKS)) { 
-    $docs += 'tasks.md' 
+# Include the (possibly phase-suffixed) tasks file if requested and it exists
+if ($IncludeTasks -and (Test-Path $paths.TASKS)) {
+    $docs += [System.IO.Path]::GetFileName($paths.TASKS)
 }
 
 # Output results
 if ($Json) {
     # JSON output
-    [PSCustomObject]@{ 
+    [PSCustomObject]@{
         FEATURE_DIR = $paths.FEATURE_DIR
-        AVAILABLE_DOCS = $docs 
+        AVAILABLE_DOCS = $docs
+        IMPL_PLAN = $paths.IMPL_PLAN
+        TASKS = $paths.TASKS
+        PHASE = $paths.PHASE
     } | ConvertTo-Json -Compress
 } else {
     # Text output
     Write-Output "FEATURE_DIR:$($paths.FEATURE_DIR)"
+    Write-Output "IMPL_PLAN:$($paths.IMPL_PLAN)"
+    Write-Output "TASKS:$($paths.TASKS)"
+    Write-Output "PHASE:$(if ($paths.PHASE) { $paths.PHASE } else { 'base' })"
     Write-Output "AVAILABLE_DOCS:"
     
     # Show status of each potential document
@@ -144,6 +150,6 @@ if ($Json) {
     Test-FileExists -Path $paths.QUICKSTART -Description 'quickstart.md' | Out-Null
     
     if ($IncludeTasks) {
-        Test-FileExists -Path $paths.TASKS -Description 'tasks.md' | Out-Null
+        Test-FileExists -Path $paths.TASKS -Description ([System.IO.Path]::GetFileName($paths.TASKS)) | Out-Null
     }
 }
