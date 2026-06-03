@@ -20,12 +20,14 @@
 > [!IMPORTANT]
 > ## 🔱 This is a fork of [github/spec-kit](https://github.com/github/spec-kit)
 >
-> This repository ([`akarzhavin/spec-kit`](https://github.com/akarzhavin/spec-kit)) tracks the upstream project and adds **one feature: a multi-phase iteration flow.**
+> This repository ([`akarzhavin/spec-kit`](https://github.com/akarzhavin/spec-kit)) tracks the upstream project and adds **two enhancements:** a **multi-phase iteration flow** and **worktree-aware feature-branch adoption.**
+>
+> ### 1. Multi-phase iteration flow
 >
 > The original flow ends at `/speckit.implement`. This fork lets you keep iterating on the **same feature** through additional, independently-scoped phases — each running its own `plan → tasks → analyze → implement` loop:
 >
 > ```text
-> constitution → specify → clarify → plan → tasks → analyze → implement   ← original, unchanged
+> constitution → specify → clarify → checklist → plan → tasks → analyze → implement   ← original, unchanged
 >   plan-review     → tasks → analyze → implement   ┐
 >   plan-localtest  → tasks → analyze → implement   │  added by this fork
 >   plan-release    → tasks → analyze → implement   │  (optional, order-independent)
@@ -38,6 +40,14 @@
 > - `/speckit.tasks`, `/speckit.analyze`, `/speckit.implement` are **unchanged** — they auto-detect the active phase (stored in `specs/<feature>/.current-phase`).
 >
 > **Fully backwards compatible:** if you never run a `plan-<phase>` command, the tool behaves exactly like upstream. See [Multi-Phase Commands](#multi-phase-commands) and [STEP 8: Multi-phase iteration](#step-8-multi-phase-iteration-optional) for details.
+>
+> ### 2. Worktree-aware feature-branch adoption
+>
+> `create-new-feature.sh` (the `git` extension) now detects when you are **already on a `NNN-` feature branch** — for example inside a `git worktree` that already owns the branch — and **adopts that branch** instead of creating a second branch and bumping the sequential feature number.
+>
+> - On `main` it still creates the feature branch as before (unchanged fallback).
+> - Skipped for `--dry-run` and when `GIT_BRANCH_NAME` is set explicitly.
+> - This makes the `before_specify → speckit.git.feature` hook **idempotent**, so running `/speckit.specify` inside a per-feature worktree no longer fights the worktree's branch (no duplicate branch, no number bump).
 
 ## Table of Contents
 

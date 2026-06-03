@@ -39,6 +39,7 @@
 
 [SECTION_3_CONTENT]
 <!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+<!-- Example (git-worktree workflow): Each feature is developed in its own `git worktree` so phases run in an isolated checkout without repeated branch switching — e.g. `git worktree add ../<project>-<feature> <feature-branch>`. A feature's spec authoring AND its implementation (writing/committing code for its tasks) MUST happen in that feature's worktree, never on the main checkout. The `git` extension's `create-new-feature.sh` cooperates with this: when invoked while already on a `NNN-` feature branch (i.e. inside the feature's worktree) it adopts that branch instead of creating a second one. -->
 
 ## Governance
 <!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
