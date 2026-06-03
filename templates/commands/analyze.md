@@ -61,11 +61,13 @@ Identify inconsistencies, duplications, ambiguities, and underspecified items ac
 
 ### 1. Initialize Analysis Context
 
-Run `{SCRIPT}` once from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS. Derive absolute paths:
+Run `{SCRIPT}` once from repo root and parse JSON for FEATURE_DIR, IMPL_PLAN, TASKS, PHASE, and AVAILABLE_DOCS. Use the script-provided absolute paths so the analysis targets the **active phase**:
 
 - SPEC = FEATURE_DIR/spec.md
-- PLAN = FEATURE_DIR/plan.md
-- TASKS = FEATURE_DIR/tasks.md
+- PLAN = IMPL_PLAN (the active plan — `plan.md` for the base phase, or `plan-<phase>.md` when PHASE is not `base`/empty)
+- TASKS = TASKS (the active tasks file — `tasks.md` or `tasks-<phase>.md`)
+
+When PHASE is not `base`/empty, also keep the base `plan.md` and `spec.md` in mind as the source of truth for the overall feature; the phase plan/tasks must stay consistent with them.
 
 Abort with an error message if any required file is missing (instruct the user to run missing prerequisite command).
 For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").

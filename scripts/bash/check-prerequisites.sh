@@ -122,14 +122,14 @@ if [[ ! -d "$FEATURE_DIR" ]]; then
 fi
 
 if [[ ! -f "$IMPL_PLAN" ]]; then
-    echo "ERROR: plan.md not found in $FEATURE_DIR" >&2
+    echo "ERROR: $(basename "$IMPL_PLAN") not found in $FEATURE_DIR" >&2
     echo "Run __SPECKIT_COMMAND_PLAN__ first to create the implementation plan." >&2
     exit 1
 fi
 
-# Check for tasks.md if required
+# Check for the (possibly phase-suffixed) tasks file if required
 if $REQUIRE_TASKS && [[ ! -f "$TASKS" ]]; then
-    echo "ERROR: tasks.md not found in $FEATURE_DIR" >&2
+    echo "ERROR: $(basename "$TASKS") not found in $FEATURE_DIR" >&2
     echo "Run __SPECKIT_COMMAND_TASKS__ first to create the task list." >&2
     exit 1
 fi
@@ -148,9 +148,9 @@ fi
 
 [[ -f "$QUICKSTART" ]] && docs+=("quickstart.md")
 
-# Include tasks.md if requested and it exists
+# Include the (possibly phase-suffixed) tasks file if requested and it exists
 if $INCLUDE_TASKS && [[ -f "$TASKS" ]]; then
-    docs+=("tasks.md")
+    docs+=("$(basename "$TASKS")")
 fi
 
 # Output results
@@ -165,7 +165,10 @@ if $JSON_MODE; then
         jq -cn \
             --arg feature_dir "$FEATURE_DIR" \
             --argjson docs "$json_docs" \
-            '{FEATURE_DIR:$feature_dir,AVAILABLE_DOCS:$docs}'
+            --arg impl_plan "$IMPL_PLAN" \
+            --arg tasks "$TASKS" \
+            --arg phase "${PHASE:-}" \
+            '{FEATURE_DIR:$feature_dir,AVAILABLE_DOCS:$docs,IMPL_PLAN:$impl_plan,TASKS:$tasks,PHASE:$phase}'
     else
         if [[ ${#docs[@]} -eq 0 ]]; then
             json_docs="[]"
@@ -173,11 +176,16 @@ if $JSON_MODE; then
             json_docs=$(for d in "${docs[@]}"; do printf '"%s",' "$(json_escape "$d")"; done)
             json_docs="[${json_docs%,}]"
         fi
-        printf '{"FEATURE_DIR":"%s","AVAILABLE_DOCS":%s}\n' "$(json_escape "$FEATURE_DIR")" "$json_docs"
+        printf '{"FEATURE_DIR":"%s","AVAILABLE_DOCS":%s,"IMPL_PLAN":"%s","TASKS":"%s","PHASE":"%s"}\n' \
+            "$(json_escape "$FEATURE_DIR")" "$json_docs" \
+            "$(json_escape "$IMPL_PLAN")" "$(json_escape "$TASKS")" "$(json_escape "${PHASE:-}")"
     fi
 else
     # Text output
     echo "FEATURE_DIR:$FEATURE_DIR"
+    echo "IMPL_PLAN:$IMPL_PLAN"
+    echo "TASKS:$TASKS"
+    echo "PHASE:${PHASE:-base}"
     echo "AVAILABLE_DOCS:"
     
     # Show status of each potential document
@@ -187,6 +195,6 @@ else
     check_file "$QUICKSTART" "quickstart.md"
     
     if $INCLUDE_TASKS; then
-        check_file "$TASKS" "tasks.md"
+        check_file "$TASKS" "$(basename "$TASKS")"
     fi
 fi

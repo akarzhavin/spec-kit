@@ -281,6 +281,21 @@ function Get-FeatureDirFromBranchPrefixOrExit {
     return $resolved
 }
 
+# Resolve the current workflow phase for a feature.
+# Priority: SPECIFY_PHASE env var (explicit override) -> <FeatureDir>/.current-phase file.
+# Returns empty (treated as the base phase) when neither is set.
+function Get-CurrentPhase {
+    param([Parameter(Mandatory = $true)][string]$FeatureDir)
+    if ($env:SPECIFY_PHASE) {
+        return $env:SPECIFY_PHASE.Trim()
+    }
+    $phaseFile = Join-Path $FeatureDir '.current-phase'
+    if (Test-Path -LiteralPath $phaseFile -PathType Leaf) {
+        return ((Get-Content -LiteralPath $phaseFile -Raw) -replace '\s', '')
+    }
+    return ''
+}
+
 function Get-FeaturePathsEnv {
     $repoRoot = Get-RepoRoot
     $currentBranch = Get-CurrentBranch
@@ -318,14 +333,27 @@ function Get-FeaturePathsEnv {
         $featureDir = Get-FeatureDirFromBranchPrefixOrExit -RepoRoot $repoRoot -CurrentBranch $currentBranch
     }
     
+    # Resolve the active phase and derive phase-suffixed plan/tasks filenames.
+    # Empty or "base" phase keeps the historical plan.md / tasks.md names so the
+    # default (single-phase) flow is unchanged. Other phases get plan-<phase>.md /
+    # tasks-<phase>.md while the shared design artifacts below stay un-suffixed.
+    $phase = Get-CurrentPhase -FeatureDir $featureDir
+    $planName = 'plan.md'
+    $tasksName = 'tasks.md'
+    if ($phase -and $phase -ne 'base') {
+        $planName = "plan-$phase.md"
+        $tasksName = "tasks-$phase.md"
+    }
+
     [PSCustomObject]@{
         REPO_ROOT     = $repoRoot
         CURRENT_BRANCH = $currentBranch
         HAS_GIT       = $hasGit
+        PHASE         = $phase
         FEATURE_DIR   = $featureDir
         FEATURE_SPEC  = Join-Path $featureDir 'spec.md'
-        IMPL_PLAN     = Join-Path $featureDir 'plan.md'
-        TASKS         = Join-Path $featureDir 'tasks.md'
+        IMPL_PLAN     = Join-Path $featureDir $planName
+        TASKS         = Join-Path $featureDir $tasksName
         RESEARCH      = Join-Path $featureDir 'research.md'
         DATA_MODEL    = Join-Path $featureDir 'data-model.md'
         QUICKSTART    = Join-Path $featureDir 'quickstart.md'

@@ -49,7 +49,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. Run `{SCRIPT}` from repo root and parse FEATURE_DIR, IMPL_PLAN, TASKS, PHASE, and AVAILABLE_DOCS list. All paths must be absolute. `IMPL_PLAN` and `TASKS` are the **active plan and tasks files** — when PHASE is not `base`/empty they are phase-suffixed (e.g. `plan-review.md` / `tasks-review.md`); otherwise they are `plan.md` / `tasks.md`. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
    - Scan all checklist files in the checklists/ directory
@@ -83,8 +83,9 @@ You **MUST** consider the user input before proceeding (if not empty).
      - Automatically proceed to step 3
 
 3. Load and analyze the implementation context:
-   - **REQUIRED**: Read tasks.md for the complete task list and execution plan
-   - **REQUIRED**: Read plan.md for tech stack, architecture, and file structure
+   - **REQUIRED**: Read the active tasks file at TASKS for the complete task list and execution plan
+   - **REQUIRED**: Read the active plan at IMPL_PLAN for tech stack, architecture, and file structure (in a phase, also the scoped work items)
+   - **IN A PHASE** (PHASE not `base`/empty): also read the base `plan.md` for overall feature context
    - **IF EXISTS**: Read data-model.md for entities and relationships
    - **IF EXISTS**: Read contracts/ for API specifications and test requirements
    - **IF EXISTS**: Read research.md for technical decisions and constraints
