@@ -17,6 +17,28 @@
 
 ---
 
+> [!IMPORTANT]
+> ## 🔱 This is a fork of [github/spec-kit](https://github.com/github/spec-kit)
+>
+> This repository ([`akarzhavin/spec-kit`](https://github.com/akarzhavin/spec-kit)) tracks the upstream project and adds **one feature: a multi-phase iteration flow.**
+>
+> The original flow ends at `/speckit.implement`. This fork lets you keep iterating on the **same feature** through additional, independently-scoped phases — each running its own `plan → tasks → analyze → implement` loop:
+>
+> ```text
+> constitution → specify → clarify → plan → tasks → analyze → implement   ← original, unchanged
+>   plan-review     → tasks → analyze → implement   ┐
+>   plan-localtest  → tasks → analyze → implement   │  added by this fork
+>   plan-release    → tasks → analyze → implement   │  (optional, order-independent)
+>   plan-final      → tasks → analyze → implement   ┘
+> ```
+>
+> **What's added vs. upstream:**
+> - 4 new commands: `/speckit.plan-review`, `/speckit.plan-localtest`, `/speckit.plan-release`, `/speckit.plan-final`.
+> - Each phase writes its own `plan-<phase>.md` / `tasks-<phase>.md`, so iterations never overwrite each other and history is preserved.
+> - `/speckit.tasks`, `/speckit.analyze`, `/speckit.implement` are **unchanged** — they auto-detect the active phase (stored in `specs/<feature>/.current-phase`).
+>
+> **Fully backwards compatible:** if you never run a `plan-<phase>` command, the tool behaves exactly like upstream. See [Multi-Phase Commands](#multi-phase-commands) and [STEP 8: Multi-phase iteration](#step-8-multi-phase-iteration-optional) for details.
+
 ## Table of Contents
 
 - [🤔 What is Spec-Driven Development?](#-what-is-spec-driven-development)
@@ -155,6 +177,19 @@ Additional commands for enhanced quality and validation:
 | `/speckit.clarify`   | `speckit-clarify`      | Clarify underspecified areas (recommended before `/speckit.plan`; formerly `/quizme`)                                                |
 | `/speckit.analyze`   | `speckit-analyze`      | Cross-artifact consistency & coverage analysis (run after `/speckit.tasks`, before `/speckit.implement`)                             |
 | `/speckit.checklist` | `speckit-checklist`    | Generate custom quality checklists that validate requirements completeness, clarity, and consistency (like "unit tests for English") |
+
+#### Multi-Phase Commands
+
+After the base feature is implemented, you can iterate on the **same feature** in additional, independently-scoped phases. Each phase runs its own `plan → tasks → analyze → implement` loop and writes to its own `plan-<phase>.md` / `tasks-<phase>.md` while sharing the base spec and design artifacts. `/speckit.tasks`, `/speckit.analyze`, and `/speckit.implement` are unchanged — they automatically follow the active phase.
+
+| Command                  | Agent Skill            | Description                                                                |
+| ------------------------ | ---------------------- | -------------------------------------------------------------------------- |
+| `/speckit.plan-review`    | `speckit-plan-review`    | Plan a code-review / hardening pass on the implemented feature           |
+| `/speckit.plan-localtest` | `speckit-plan-localtest` | Plan running the feature locally and fixing what the run surfaces        |
+| `/speckit.plan-release`   | `speckit-plan-release`   | Plan release readiness (version, changelog, packaging, CI/CD)            |
+| `/speckit.plan-final`     | `speckit-plan-final`     | Plan final acceptance / end-to-end testing and sign-off                  |
+
+Phases are optional and order-independent — run only the ones you need (see [Multi-phase iteration](#step-8-multi-phase-iteration-optional)). Re-running `/speckit.plan` resets back to the base phase.
 
 ## 🔧 Specify CLI Reference
 
@@ -561,6 +596,43 @@ The `/speckit.implement` command will:
 > The coding agent will execute local CLI commands (such as `dotnet`, `npm`, etc.) - make sure you have the required tools installed on your machine.
 
 Once the implementation is complete, test the application and resolve any runtime errors that may not be visible in CLI logs (e.g., browser console errors). You can copy and paste such errors back to your coding agent for resolution.
+
+### **STEP 8:** Multi-phase iteration (optional)
+
+A feature is rarely "done" at the first `/speckit.implement`. Instead of cramming review, local testing, release prep, and final acceptance into one plan, you can iterate on the **same feature** in dedicated phases. Each phase is its own `plan → tasks → analyze → implement` loop:
+
+```text
+/speckit.plan-review      → /speckit.tasks → /speckit.analyze → /speckit.implement
+/speckit.plan-localtest   → /speckit.tasks → /speckit.analyze → /speckit.implement
+/speckit.plan-release     → /speckit.tasks → /speckit.analyze → /speckit.implement
+/speckit.plan-final       → /speckit.tasks → /speckit.analyze → /speckit.implement
+```
+
+You can pass context to a phase plan, for example:
+
+```text
+/speckit.plan-review Found duplication in the auth module and missing error handling in the API layer
+/speckit.plan-release Target version 1.2.0, update CHANGELOG and the release workflow
+```
+
+How it works:
+
+- Each `/speckit.plan-<phase>` command records the active phase and writes a **scoped plan** to `plan-<phase>.md`. It does **not** regenerate the shared design artifacts (`research.md`, `data-model.md`, `quickstart.md`, `contracts/`) — it references them.
+- `/speckit.tasks`, `/speckit.analyze`, and `/speckit.implement` are the same commands as in the base flow. They detect the active phase and operate on `plan-<phase>.md` / `tasks-<phase>.md` automatically — no extra arguments.
+- Phases are **optional and order-independent**. Run only the ones you need, in any order. The only rule is that within a phase you must run its `plan-<phase>` before that phase's `tasks` / `implement`.
+- Re-running the base `/speckit.plan` clears the active phase, so subsequent `tasks` / `analyze` / `implement` go back to the base `plan.md` / `tasks.md`.
+
+This keeps each iteration's plan and tasks in their own files, so history is preserved and phases never overwrite each other:
+
+```text
+specs/001-photo-albums/
+  spec.md  research.md  data-model.md  quickstart.md  contracts/   # shared across phases
+  plan.md            tasks.md            # base implementation
+  plan-review.md     tasks-review.md     # review / hardening
+  plan-localtest.md  tasks-localtest.md  # local run + fixes
+  plan-release.md    tasks-release.md    # version, changelog, CI
+  plan-final.md      tasks-final.md      # acceptance / sign-off
+```
 
 </details>
 
