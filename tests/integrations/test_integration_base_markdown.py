@@ -254,7 +254,7 @@ class MarkdownIntegrationTests:
 
     COMMAND_STEMS = [
         "agent-context.update",
-        "analyze", "checklist", "clarify", "constitution",
+        "analyze", "checklist", "clarify", "constitution", "done",
         "implement", "plan", "plan-final", "plan-localtest", "plan-release",
         "plan-review", "specify", "tasks", "taskstoissues",
     ]
@@ -286,6 +286,7 @@ class MarkdownIntegrationTests:
 
         for name in ["checklist-template.md",
                      "constitution-template.md", "plan-template.md",
+                     "resolution-template.md",
                      "spec-template.md", "tasks-template.md"]:
             files.append(f".specify/templates/{name}")
 

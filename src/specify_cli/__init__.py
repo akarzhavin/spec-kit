@@ -484,6 +484,7 @@ SKILL_DESCRIPTIONS = {
     "plan": "Generate technical implementation plans from feature specifications.",
     "tasks": "Break down implementation plans into actionable task lists.",
     "implement": "Execute all tasks from the task breakdown to build the feature.",
+    "done": "Finalize the feature: verify branches/submodules merged and the worktree is closeable, then generate resolution.md.",
     "analyze": "Perform cross-artifact consistency analysis across spec.md, plan.md, and tasks.md.",
     "clarify": "Structured clarification workflow for underspecified requirements.",
     "constitution": "Create or update project governing principles and development guidelines.",

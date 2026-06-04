@@ -21,6 +21,7 @@ ARGUMENT_HINTS: dict[str, str] = {
     "plan-final": "Optional acceptance constraints for final testing",
     "tasks": "Optional task generation constraints",
     "implement": "Optional implementation guidance or task filter",
+    "done": "Optional base branch to merge into, plus caveats for the resolution report",
     "analyze": "Optional focus areas for analysis",
     "clarify": "Optional areas to clarify in the spec",
     "constitution": "Principles or values for the project constitution",

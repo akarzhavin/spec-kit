@@ -27,17 +27,19 @@
 > The original flow ends at `/speckit.implement`. This fork lets you keep iterating on the **same feature** through additional, independently-scoped phases — each running its own `plan → tasks → analyze → implement` loop:
 >
 > ```text
-> constitution → specify → clarify → checklist → plan → tasks → analyze → implement   ← original, unchanged
+> constitution → specify → clarify → checklist → plan → tasks → analyze → implement → done   ← original + final report
 >   plan-review     → tasks → analyze → implement   ┐
 >   plan-localtest  → tasks → analyze → implement   │  added by this fork
 >   plan-release    → tasks → analyze → implement   │  (optional, order-independent)
 >   plan-final      → tasks → analyze → implement   ┘
+>                                              ↳ done   ← run last to write resolution.md
 > ```
 >
 > **What's added vs. upstream:**
-> - 4 new commands: `/speckit.plan-review`, `/speckit.plan-localtest`, `/speckit.plan-release`, `/speckit.plan-final`.
+> - 4 new phase commands: `/speckit.plan-review`, `/speckit.plan-localtest`, `/speckit.plan-release`, `/speckit.plan-final`.
+> - 1 new final command: `/speckit.done` — verifies the work is fully integrated (working tree clean, all task branches **including submodules** merged, the feature **`git worktree` closeable**), closes the worktree, and then generates `resolution.md`, a report of the work actually done (delivered/deferred work, changes, verification, final status). It is a **hard gate**: if uncommitted changes or un-merged branches remain, it stops and tells you what to fix instead of writing the report. Run it last.
 > - Each phase writes its own `plan-<phase>.md` / `tasks-<phase>.md`, so iterations never overwrite each other and history is preserved.
-> - `/speckit.tasks`, `/speckit.analyze`, `/speckit.implement` are **unchanged** — they auto-detect the active phase (stored in `specs/<feature>/.current-phase`).
+> - `/speckit.tasks`, `/speckit.analyze`, `/speckit.implement` are **unchanged** — they auto-detect the active phase (stored in `specs/<feature>/.current-phase`). `/speckit.done` is phase-aware too (writes `resolution-<phase>.md` in a phase).
 >
 > **Fully backwards compatible:** if you never run a `plan-<phase>` command, the tool behaves exactly like upstream. See [Multi-Phase Commands](#multi-phase-commands) and [STEP 8: Multi-phase iteration](#step-8-multi-phase-iteration-optional) for details.
 >
@@ -133,6 +135,14 @@ Use **`/speckit.implement`** to execute all tasks and build your feature accordi
 /speckit.implement
 ```
 
+### 8. Finalize and report
+
+Use **`/speckit.done`** as the final step. It first **verifies the work is fully integrated** — working tree clean, every task branch (including submodules) merged into its base, and the feature's `git worktree` ready to be closed — then closes the worktree and generates `resolution.md`, a report of the work actually done: what was delivered, what was deferred, the changes made, how it was verified, and the final status. If uncommitted changes or un-merged branches remain (the usual reason a worktree won't close), it stops and lists exactly what to fix.
+
+```bash
+/speckit.done
+```
+
 For detailed step-by-step instructions, see our [comprehensive guide](./spec-driven.md).
 
 ## 📽️ Video Overview
@@ -177,6 +187,7 @@ Essential commands for the Spec-Driven Development workflow:
 | `/speckit.tasks`         | `speckit-tasks`        | Generate actionable task lists for implementation                          |
 | `/speckit.taskstoissues` | `speckit-taskstoissues`| Convert generated task lists into GitHub issues for tracking and execution |
 | `/speckit.implement`     | `speckit-implement`    | Execute all tasks to build the feature according to the plan               |
+| `/speckit.done`          | `speckit-done`         | Finalize: verify branches & submodules merged and the `git worktree` is closeable, close it, then generate `resolution.md` (final step) |
 
 #### Optional Commands
 

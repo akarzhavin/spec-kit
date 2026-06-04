@@ -125,9 +125,9 @@ class TestCopilotIntegration:
         agents_dir = tmp_path / ".github" / "agents"
         assert agents_dir.is_dir()
         agent_files = sorted(agents_dir.glob("speckit.*.agent.md"))
-        assert len(agent_files) == 13
+        assert len(agent_files) == 14
         expected_commands = {
-            "analyze", "checklist", "clarify", "constitution",
+            "analyze", "checklist", "clarify", "constitution", "done",
             "implement", "plan", "plan-final", "plan-localtest", "plan-release",
             "plan-review", "specify", "tasks", "taskstoissues",
         }
@@ -199,6 +199,7 @@ class TestCopilotIntegration:
             ".github/agents/speckit.checklist.agent.md",
             ".github/agents/speckit.clarify.agent.md",
             ".github/agents/speckit.constitution.agent.md",
+            ".github/agents/speckit.done.agent.md",
             ".github/agents/speckit.implement.agent.md",
             ".github/agents/speckit.plan.agent.md",
             ".github/agents/speckit.plan-final.agent.md",
@@ -213,6 +214,7 @@ class TestCopilotIntegration:
             ".github/prompts/speckit.checklist.prompt.md",
             ".github/prompts/speckit.clarify.prompt.md",
             ".github/prompts/speckit.constitution.prompt.md",
+            ".github/prompts/speckit.done.prompt.md",
             ".github/prompts/speckit.implement.prompt.md",
             ".github/prompts/speckit.plan.prompt.md",
             ".github/prompts/speckit.plan-final.prompt.md",
@@ -244,6 +246,7 @@ class TestCopilotIntegration:
             ".specify/templates/checklist-template.md",
             ".specify/templates/constitution-template.md",
             ".specify/templates/plan-template.md",
+            ".specify/templates/resolution-template.md",
             ".specify/templates/spec-template.md",
             ".specify/templates/tasks-template.md",
             ".specify/memory/constitution.md",
@@ -277,6 +280,7 @@ class TestCopilotIntegration:
             ".github/agents/speckit.checklist.agent.md",
             ".github/agents/speckit.clarify.agent.md",
             ".github/agents/speckit.constitution.agent.md",
+            ".github/agents/speckit.done.agent.md",
             ".github/agents/speckit.implement.agent.md",
             ".github/agents/speckit.plan.agent.md",
             ".github/agents/speckit.plan-final.agent.md",
@@ -291,6 +295,7 @@ class TestCopilotIntegration:
             ".github/prompts/speckit.checklist.prompt.md",
             ".github/prompts/speckit.clarify.prompt.md",
             ".github/prompts/speckit.constitution.prompt.md",
+            ".github/prompts/speckit.done.prompt.md",
             ".github/prompts/speckit.implement.prompt.md",
             ".github/prompts/speckit.plan.prompt.md",
             ".github/prompts/speckit.plan-final.prompt.md",
@@ -322,6 +327,7 @@ class TestCopilotIntegration:
             ".specify/templates/checklist-template.md",
             ".specify/templates/constitution-template.md",
             ".specify/templates/plan-template.md",
+            ".specify/templates/resolution-template.md",
             ".specify/templates/spec-template.md",
             ".specify/templates/tasks-template.md",
             ".specify/memory/constitution.md",
@@ -338,7 +344,7 @@ class TestCopilotSkillsMode:
     """Tests for Copilot integration in --skills mode."""
 
     _SKILL_COMMANDS = [
-        "analyze", "checklist", "clarify", "constitution",
+        "analyze", "checklist", "clarify", "constitution", "done",
         "implement", "plan", "plan-final", "plan-localtest", "plan-release",
         "plan-review", "specify", "tasks", "taskstoissues",
     ]
@@ -702,6 +708,7 @@ class TestCopilotSkillsMode:
             ".specify/templates/checklist-template.md",
             ".specify/templates/constitution-template.md",
             ".specify/templates/plan-template.md",
+            ".specify/templates/resolution-template.md",
             ".specify/templates/spec-template.md",
             ".specify/templates/tasks-template.md",
             ".specify/memory/constitution.md",

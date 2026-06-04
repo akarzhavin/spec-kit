@@ -489,6 +489,7 @@ class TomlIntegrationTests:
         "checklist",
         "clarify",
         "constitution",
+        "done",
         "implement",
         "plan",
         "plan-final",
@@ -539,6 +540,7 @@ class TomlIntegrationTests:
             "checklist-template.md",
             "constitution-template.md",
             "plan-template.md",
+            "resolution-template.md",
             "spec-template.md",
             "tasks-template.md",
         ]:
