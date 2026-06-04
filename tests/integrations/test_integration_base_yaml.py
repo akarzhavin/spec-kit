@@ -368,6 +368,7 @@ class YamlIntegrationTests:
         "checklist",
         "clarify",
         "constitution",
+        "done",
         "implement",
         "plan",
         "plan-final",
@@ -418,6 +419,7 @@ class YamlIntegrationTests:
             "checklist-template.md",
             "constitution-template.md",
             "plan-template.md",
+            "resolution-template.md",
             "spec-template.md",
             "tasks-template.md",
         ]:

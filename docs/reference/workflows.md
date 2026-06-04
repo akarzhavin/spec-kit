@@ -134,7 +134,7 @@ workflow:
   name: "Full SDD Cycle"
   version: "1.0.0"
   author: "GitHub"
-  description: "Runs specify → plan → tasks → implement with review gates"
+  description: "Runs specify → plan → tasks → implement → done with review gates"
 
 requires:
   speckit_version: ">=0.7.2"
@@ -191,6 +191,12 @@ steps:
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.spec }}"
+
+  - id: done
+    command: speckit.done
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.spec }}"
 ```
 
 This produces the following execution flow:
@@ -204,6 +210,7 @@ flowchart TB
     D -- approve --> E["tasks<br/>(command)"]
     D -- reject --> X2["⏹ Abort"]
     E --> F["implement<br/>(command)"]
+    F --> G["done<br/>(command)"]
 
     style A fill:#49a,color:#fff
     style B fill:#a94,color:#fff
@@ -211,6 +218,7 @@ flowchart TB
     style D fill:#a94,color:#fff
     style E fill:#49a,color:#fff
     style F fill:#49a,color:#fff
+    style G fill:#49a,color:#fff
     style X1 fill:#999,color:#fff
     style X2 fill:#999,color:#fff
 ```
